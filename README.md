@@ -23,7 +23,7 @@
    - Compare before vs after pricing; map/visual comparisons
 
 ## Video Summary
-- DataStorm submission overview ([](https://youtu.be/45NB7nAIKMs))
+- DataStorm submission overview ([link](https://youtu.be/45NB7nAIKMs))
 
 ## Quick Start
 
