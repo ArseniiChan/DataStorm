@@ -1,14 +1,3 @@
-"""
-Question 3: Congestion Pricing Impact on Automated Camera-Enforced Route Violations
-MTA Datathon 2025
-
-Analyzes how violations on routes crossing Manhattan's CBD changed 
-with congestion pricing implementation (January 5, 2025).
-
-Author: [Your Name]
-Date: September 2025
-"""
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,54 +10,101 @@ warnings.filterwarnings('ignore')
 plt.style.use('default')
 sns.set_palette("husl")
 
+
 def load_ace_violations_data():
-    """Load the ACE violations data that teammates already downloaded"""
-    
+    """Load ACE violations from 2025 file and historical 2019–2024 file, normalize, and combine"""
+    import os
+
     print("Loading ACE violations data...")
-    
-    try:
-        # Load the raw data from your teammates' download
-        df = pd.read_csv('../data/raw/ace_violations_raw_20250923_2345.csv')
-        
-        print(f"Loaded {len(df):,} violation records")
-        print(f"Columns: {list(df.columns)}")
-        
-        # Basic data preprocessing
-        # Convert date columns (adjust column names based on actual data)
-        date_columns = ['first_occurrence', 'last_occurrence']
-        for col in date_columns:
+
+    paths = [
+        '../data/raw/ace_violations_raw_20250923_2345.csv',
+        '../data/raw/MTA_Bus_Automated_Camera_Enforcement_Violations__Beginning_October_2019_20250924.csv',
+    ]
+    dfs = []
+
+    def normalize(df):
+        # Harmonize column names
+        rename_map = {
+            'Violation ID': 'violation_id',
+            'Vehicle ID': 'vehicle_id',
+            'First Occurrence': 'first_occurrence',
+            'Last Occurrence': 'last_occurrence',
+            'Violation Status': 'violation_status',
+            'Violation Type': 'violation_type',
+            'Bus Route ID': 'bus_route_id',
+            'Violation Latitude': 'violation_latitude',
+            'Violation Longitude': 'violation_longitude',
+            'Stop ID': 'stop_id',
+            'Stop Name': 'stop_name',
+            'Bus Stop Latitude': 'bus_stop_latitude',
+            'Bus Stop Longitude': 'bus_stop_longitude',
+            'Violation Georeference': 'violation_georeference',
+            'Bus Stop Georeference': 'bus_stop_georeference',
+        }
+        df = df.rename(columns={c: rename_map.get(c, c) for c in df.columns})
+
+        # Parse dates (handles both 2025 ISO and 2019–2024 MM/DD/YYYY AM/PM)
+        for col in ['first_occurrence', 'last_occurrence']:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
-        
-        # Convert coordinate columns to numeric
-        coord_columns = [col for col in df.columns if 'lat' in col.lower() or 'lon' in col.lower()]
-        for col in coord_columns:
+
+        # Ensure numeric coords
+        for col in [c for c in df.columns if 'lat' in c.lower() or 'lon' in c.lower() or 'latitude' in c.lower() or 'longitude' in c.lower()]:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            
+
+        # Standardize route column to string
+        if 'bus_route_id' in df.columns:
+            df['bus_route_id'] = df['bus_route_id'].astype(str)
+
         return df
-        
-    except FileNotFoundError:
-        print("Error: Could not find ACE violations data file")
-        print("Expected: ../data/raw/ace_violations_raw_20250923_2345.csv")
+
+    for p in paths:
+        try:
+            if os.path.exists(p):
+                print(f"  - Reading: {p}")
+                df = pd.read_csv(p)
+                df = normalize(df)
+                dfs.append(df)
+            else:
+                print(f"  - Missing: {p}")
+        except Exception as e:
+            print(f"  - Error reading {p}: {e}")
+
+    if not dfs:
+        print("Error: No ACE files loaded.")
         return pd.DataFrame()
+
+    df_all = pd.concat(dfs, ignore_index=True)
+
+    # Drop exact dupes if present
+    if 'violation_id' in df_all.columns:
+        before = len(df_all)
+        df_all = df_all.drop_duplicates(subset=['violation_id'])
+        print(f"De-duplicated by violation_id: {before:,} -> {len(df_all):,}")
+
+    print(f"Loaded combined ACE dataset: {len(df_all):,} rows")
+    print(f"Date range: {df_all['first_occurrence'].min()} -> {df_all['first_occurrence'].max()}")
+    return df_all
+
 
 def identify_manhattan_cbd_routes(df):
     """
     Identify bus routes that travel within or cross Manhattan's Central Business District
     """
-    
+
     print("\nIdentifying Manhattan CBD routes...")
-    
+
     # Manhattan routes that cross or travel within CBD (south of 61st Street)
     # These are the key routes for congestion pricing analysis
     manhattan_cbd_routes = [
         # Crosstown routes (clearly in CBD)
         'M14A', 'M14D',      # 14th Street
-        'M23',               # 23rd Street  
+        'M23',               # 23rd Street
         'M34A', 'M34',       # 34th Street
         'M42',               # 42nd Street
         'M57',               # 57th Street
-        
+
         # North-South routes that enter/cross CBD
         'M15',               # 1st Avenue
         'M2',                # Madison Avenue
@@ -83,11 +119,11 @@ def identify_manhattan_cbd_routes(df):
         'M21',               # Houston Street
         'M101',              # Lexington/3rd Avenue
         'M103',              # Lexington Avenue
-        
+
         # SBS (Select Bus Service) equivalents
         'M15+', 'M34+', 'M23+', 'M14+', 'M60+', 'M79+'
     ]
-    
+
     # Filter for routes that match our CBD list
     # Use flexible matching in case route names have variations
     route_column = None
@@ -95,15 +131,16 @@ def identify_manhattan_cbd_routes(df):
         if 'route' in col.lower() or 'line' in col.lower():
             route_column = col
             break
-    
+
     if route_column is None:
         print("Warning: Could not identify route column in data")
         return df, manhattan_cbd_routes
-    
+
     # Create mask for Manhattan CBD routes
-    cbd_mask = df[route_column].astype(str).str.contains('|'.join(manhattan_cbd_routes), na=False)
+    cbd_mask = df[route_column].astype(str).str.contains(
+        '|'.join(manhattan_cbd_routes), na=False)
     cbd_df = df[cbd_mask].copy()
-    
+
     # Add geographic boundary check for CBD zone
     lat_col = None
     lon_col = None
@@ -112,14 +149,14 @@ def identify_manhattan_cbd_routes(df):
             lat_col = col
         if 'lon' in col.lower() and lon_col is None:
             lon_col = col
-    
+
     if lat_col and lon_col:
         # CBD boundaries (approximate)
         cbd_south = 40.7047   # Around Houston Street
-        cbd_north = 40.7614   # Around 61st Street  
+        cbd_north = 40.7614   # Around 61st Street
         cbd_west = -74.0150   # West Side Highway
         cbd_east = -73.9441   # East River
-        
+
         cbd_df['in_cbd_zone'] = (
             (cbd_df[lat_col] >= cbd_south) &
             (cbd_df[lat_col] <= cbd_north) &
@@ -127,40 +164,42 @@ def identify_manhattan_cbd_routes(df):
             (cbd_df[lon_col] <= cbd_east)
         )
     else:
-        cbd_df['in_cbd_zone'] = True  # Assume all Manhattan routes potentially in CBD
-    
+        # Assume all Manhattan routes potentially in CBD
+        cbd_df['in_cbd_zone'] = True
+
     print(f"Found {len(cbd_df):,} violations on Manhattan CBD routes")
     actual_routes = sorted(cbd_df[route_column].unique())
     print(f"Routes found in data: {actual_routes[:10]}...")  # Show first 10
-    
+
     return cbd_df, manhattan_cbd_routes
+
 
 def analyze_congestion_pricing_impact(cbd_df):
     """
     Analyze violations before and after congestion pricing implementation
     """
-    
+
     print("\nAnalyzing congestion pricing impact...")
-    
+
     # Congestion pricing implementation date
     congestion_start = pd.to_datetime('2025-01-05')
-    
+
     # Use first_occurrence as the primary date column
     date_col = 'first_occurrence'
-    
+
     if date_col not in cbd_df.columns:
         print("Warning: first_occurrence column not found")
         return {}
-    
+
     # Add time period analysis
     cbd_df['post_congestion_pricing'] = cbd_df[date_col] >= congestion_start
     cbd_df['year_month'] = cbd_df[date_col].dt.to_period('M')
     cbd_df['week'] = cbd_df[date_col].dt.to_period('W')
-    
+
     # Basic statistics
     pre_cp = cbd_df[cbd_df['post_congestion_pricing'] == False]
     post_cp = cbd_df[cbd_df['post_congestion_pricing'] == True]
-    
+
     results = {
         'total_violations': len(cbd_df),
         'pre_cp_violations': len(pre_cp),
@@ -168,26 +207,30 @@ def analyze_congestion_pricing_impact(cbd_df):
         'congestion_start_date': congestion_start,
         'analysis_date_range': (cbd_df[date_col].min(), cbd_df[date_col].max())
     }
-    
-    # Calculate change percentage
+
+    # Calculate change percentage and track if a true pre-CP period exists
     if len(pre_cp) > 0:
-        results['percent_change'] = ((len(post_cp) - len(pre_cp)) / len(pre_cp)) * 100
+        results['percent_change'] = (
+            (len(post_cp) - len(pre_cp)) / len(pre_cp)) * 100
+        results['has_pre_period'] = True
     else:
-        results['percent_change'] = 0
-    
+        results['percent_change'] = None
+        results['has_pre_period'] = False
+
     # Monthly trend analysis
-    monthly_counts = cbd_df.groupby(['year_month', 'post_congestion_pricing']).size().unstack(fill_value=0)
+    monthly_counts = cbd_df.groupby(
+        ['year_month', 'post_congestion_pricing']).size().unstack(fill_value=0)
     results['monthly_trends'] = monthly_counts
-    
+
     # Route-specific analysis
     route_col = [col for col in cbd_df.columns if 'route' in col.lower()][0]
     route_analysis = []
-    
+
     for route in cbd_df[route_col].unique():
         route_data = cbd_df[cbd_df[route_col] == route]
         route_pre = route_data[route_data['post_congestion_pricing'] == False]
         route_post = route_data[route_data['post_congestion_pricing'] == True]
-        
+
         route_stats = {
             'route': route,
             'total_violations': len(route_data),
@@ -197,79 +240,95 @@ def analyze_congestion_pricing_impact(cbd_df):
             'cbd_zone_violations': len(route_data[route_data.get('in_cbd_zone', True) == True])
         }
         route_analysis.append(route_stats)
-    
-    results['route_analysis'] = pd.DataFrame(route_analysis).sort_values('total_violations', ascending=False)
-    
+
+    results['route_analysis'] = pd.DataFrame(
+        route_analysis).sort_values('total_violations', ascending=False)
+
     # Violation type analysis (if available)
     violation_type_col = None
     for col in cbd_df.columns:
         if 'type' in col.lower() and 'violation' in col.lower():
             violation_type_col = col
             break
-    
+
     if violation_type_col:
-        violation_types = cbd_df.groupby([violation_type_col, 'post_congestion_pricing']).size().unstack(fill_value=0)
+        violation_types = cbd_df.groupby(
+            [violation_type_col, 'post_congestion_pricing']).size().unstack(fill_value=0)
         results['violation_types'] = violation_types
-    
+
     print(f"Analysis complete:")
     print(f"  - Pre-CP violations: {results['pre_cp_violations']:,}")
     print(f"  - Post-CP violations: {results['post_cp_violations']:,}")
-    print(f"  - Change: {results['percent_change']:+.1f}%")
-    
+    if results.get('has_pre_period'):
+        print(f"  - Change: {results['percent_change']:+.1f}%")
+    else:
+        print("  - Change: Not computable (no pre-CP data)")
+
     return results
+
 
 def create_visualizations(cbd_df, results):
     """Create comprehensive visualizations for Question 3"""
-    
+
     print("\nCreating visualizations...")
-    
+
     # Set up the plot
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-    fig.suptitle('Question 3: Congestion Pricing Impact on CBD Route Violations', 
+    fig.suptitle('Question 3: Congestion Pricing Impact on CBD Route Violations',
                  fontsize=16, fontweight='bold')
-    
+
     # 1. Before vs After comparison
-    pre_post_data = [results['pre_cp_violations'], results['post_cp_violations']]
-    labels = ['Pre-Congestion Pricing\n(Before Jan 5, 2025)', 'Post-Congestion Pricing\n(After Jan 5, 2025)']
+    pre_post_data = [results['pre_cp_violations'],
+                     results['post_cp_violations']]
+    labels = ['Pre-Congestion Pricing\n(Before Jan 5, 2025)',
+              'Post-Congestion Pricing\n(After Jan 5, 2025)']
     colors = ['#ff7f0e', '#1f77b4']
-    
-    bars = axes[0,0].bar(labels, pre_post_data, color=colors)
-    axes[0,0].set_title('Total Violations: Before vs After Congestion Pricing')
-    axes[0,0].set_ylabel('Number of Violations')
-    
-    # Add percentage change annotation
-    change_pct = results['percent_change']
-    axes[0,0].annotate(f'Change: {change_pct:.1f}%', 
-                       xy=(0.5, max(pre_post_data) * 0.8), 
-                       ha='center', fontsize=12, fontweight='bold',
-                       bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7))
-    
+
+    bars = axes[0, 0].bar(labels, pre_post_data, color=colors)
+    axes[0, 0].set_title(
+        'Total Violations: Before vs After Congestion Pricing')
+    axes[0, 0].set_ylabel('Number of Violations')
+
+    # Add percentage change annotation or info when not computable
+    if results.get('has_pre_period'):
+        change_pct = results['percent_change']
+        axes[0, 0].annotate(f'Change: {change_pct:.1f}%',
+                            xy=(0.5, max(pre_post_data) * 0.8),
+                            ha='center', fontsize=12, fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7))
+    else:
+        axes[0, 0].annotate('No pre-CP data in this dataset\nChange not computable',
+                            xy=(0.5, max(pre_post_data) * 0.8),
+                            ha='center', fontsize=12, fontweight='bold',
+                            bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7))
+
     # Add value labels on bars
     for bar, value in zip(bars, pre_post_data):
-        axes[0,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(pre_post_data)*0.02,
-                       f'{value:,}', ha='center', va='bottom', fontweight='bold')
-    
+        axes[0, 0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(pre_post_data)*0.02,
+                        f'{value:,}', ha='center', va='bottom', fontweight='bold')
+
     # 2. Monthly trends (if available)
     if 'monthly_trends' in results and not results['monthly_trends'].empty:
         monthly_data = results['monthly_trends']
-        monthly_data.plot(kind='line', ax=axes[0,1], marker='o', linewidth=2)
-        axes[0,1].set_title('Monthly Violation Trends')
-        axes[0,1].set_xlabel('Month')
-        axes[0,1].set_ylabel('Number of Violations')
-        axes[0,1].legend(['Pre-CP', 'Post-CP'])
-        axes[0,1].grid(True, alpha=0.3)
+        monthly_data.plot(kind='line', ax=axes[0, 1], marker='o', linewidth=2)
+        axes[0, 1].set_title('Monthly Violation Trends')
+        axes[0, 1].set_xlabel('Month')
+        axes[0, 1].set_ylabel('Number of Violations')
+        axes[0, 1].legend(['Pre-CP', 'Post-CP'])
+        axes[0, 1].grid(True, alpha=0.3)
     else:
-        axes[0,1].text(0.5, 0.5, 'Monthly trends\ndata not available', 
-                       ha='center', va='center', transform=axes[0,1].transAxes)
-    
+        axes[0, 1].text(0.5, 0.5, 'Monthly trends\ndata not available',
+                        ha='center', va='center', transform=axes[0, 1].transAxes)
+
     # 3. Top routes by violations
     if not results['route_analysis'].empty:
         top_routes = results['route_analysis'].head(10)
-        axes[1,0].barh(top_routes['route'], top_routes['total_violations'], color='steelblue')
-        axes[1,0].set_title('Top 10 Routes by Total Violations')
-        axes[1,0].set_xlabel('Total Violations')
-        axes[1,0].set_ylabel('Bus Route')
-    
+        axes[1, 0].barh(top_routes['route'],
+                        top_routes['total_violations'], color='steelblue')
+        axes[1, 0].set_title('Top 10 Routes by Total Violations')
+        axes[1, 0].set_xlabel('Total Violations')
+        axes[1, 0].set_ylabel('Bus Route')
+
     # 4. Geographic distribution (if coordinates available)
     if 'in_cbd_zone' in cbd_df.columns:
         cbd_violations = cbd_df[cbd_df['in_cbd_zone'] == True]
@@ -277,76 +336,99 @@ def create_visualizations(cbd_df, results):
             # Find coordinate columns
             lat_col = [col for col in cbd_df.columns if 'lat' in col.lower()][0]
             lon_col = [col for col in cbd_df.columns if 'lon' in col.lower()][0]
-            
-            scatter = axes[1,1].scatter(cbd_violations[lon_col], cbd_violations[lat_col],
-                                      c=cbd_violations['post_congestion_pricing'], 
-                                      cmap='RdYlBu_r', alpha=0.6, s=20)
-            axes[1,1].set_title('Violation Locations in CBD Zone')
-            axes[1,1].set_xlabel('Longitude')
-            axes[1,1].set_ylabel('Latitude')
-            
+
+            scatter = axes[1, 1].scatter(cbd_violations[lon_col], cbd_violations[lat_col],
+                                         c=cbd_violations['post_congestion_pricing'],
+                                         cmap='RdYlBu_r', alpha=0.6, s=20)
+            axes[1, 1].set_title('Violation Locations in CBD Zone')
+            axes[1, 1].set_xlabel('Longitude')
+            axes[1, 1].set_ylabel('Latitude')
+
             # Add colorbar
-            cbar = plt.colorbar(scatter, ax=axes[1,1])
+            cbar = plt.colorbar(scatter, ax=axes[1, 1])
             cbar.set_label('Post-Congestion Pricing')
             cbar.set_ticks([0, 1])
             cbar.set_ticklabels(['Pre-CP', 'Post-CP'])
         else:
-            axes[1,1].text(0.5, 0.5, 'No CBD zone\nviolations found', 
-                           ha='center', va='center', transform=axes[1,1].transAxes)
+            axes[1, 1].text(0.5, 0.5, 'No CBD zone\nviolations found',
+                            ha='center', va='center', transform=axes[1, 1].transAxes)
     else:
-        axes[1,1].text(0.5, 0.5, 'Geographic data\nnot available', 
-                       ha='center', va='center', transform=axes[1,1].transAxes)
-    
+        axes[1, 1].text(0.5, 0.5, 'Geographic data\nnot available',
+                        ha='center', va='center', transform=axes[1, 1].transAxes)
+
     plt.tight_layout()
-    plt.savefig('results/question3_congestion_pricing_analysis.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/question3_congestion_pricing_analysis.png',
+                dpi=300, bbox_inches='tight')
     plt.show()
-    
+
     # Create additional route-specific visualization
     create_route_comparison_chart(results)
 
+
 def create_route_comparison_chart(results):
     """Create detailed route comparison chart"""
-    
+
     route_data = results['route_analysis'].head(8)  # Top 8 routes
-    
+
     fig, ax = plt.subplots(figsize=(12, 6))
-    
+
+    # If no pre-CP data, show a single-series ranking to avoid misleading comparison
+    if not results.get('has_pre_period'):
+        ax.barh(route_data['route'],
+                route_data['total_violations'], color='#1f77b4')
+        ax.set_title('Top Routes by Violations (post-CP dataset only)')
+        ax.set_xlabel('Total Violations')
+        ax.set_ylabel('Bus Route')
+        plt.tight_layout()
+        plt.savefig('results/route_comparison_chart.png',
+                    dpi=300, bbox_inches='tight')
+        plt.show()
+        return
+
     x = np.arange(len(route_data))
     width = 0.35
-    
-    bars1 = ax.bar(x - width/2, route_data['pre_cp_violations'], width, 
+
+    bars1 = ax.bar(x - width/2, route_data['pre_cp_violations'], width,
                    label='Pre-Congestion Pricing', color='#ff7f0e')
     bars2 = ax.bar(x + width/2, route_data['post_cp_violations'], width,
                    label='Post-Congestion Pricing', color='#1f77b4')
-    
+
     ax.set_xlabel('Bus Routes')
     ax.set_ylabel('Number of Violations')
     ax.set_title('Route-Specific Comparison: Pre vs Post Congestion Pricing')
     ax.set_xticks(x)
     ax.set_xticklabels(route_data['route'])
     ax.legend()
-    
+
     # Add value labels
     for bar in bars1:
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 1,
                 f'{int(height)}', ha='center', va='bottom', fontsize=8)
-    
+
     for bar in bars2:
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 1,
                 f'{int(height)}', ha='center', va='bottom', fontsize=8)
-    
+
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig('results/route_comparison_chart.png', dpi=300, bbox_inches='tight')
+    plt.savefig('results/route_comparison_chart.png',
+                dpi=300, bbox_inches='tight')
     plt.show()
+
 
 def generate_summary_report(results):
     """Generate comprehensive summary report"""
-    
+
     print("\nGenerating summary report...")
-    
+
+    # Build Net change line conditionally
+    if results.get('has_pre_period'):
+        net_change_line = f"**Net change: {results['percent_change']:+.1f}%**"
+    else:
+        net_change_line = "**Net change: Not computable (no pre-CP data)**"
+
     report = f"""
 # Question 3: Congestion Pricing Impact Analysis
 ## MTA Datathon 2025
@@ -361,7 +443,7 @@ This analysis examines how violations on automated camera-enforced routes within
 - Total violations analyzed: {results['total_violations']:,}
 - Pre-congestion pricing violations: {results['pre_cp_violations']:,}
 - Post-congestion pricing violations: {results['post_cp_violations']:,}
-- **Net change: {results['percent_change']:+.1f}%**
+- {net_change_line}
 
 **Analysis Period:**
 - Data spans: {results['analysis_date_range'][0].strftime('%Y-%m-%d')} to {results['analysis_date_range'][1].strftime('%Y-%m-%d')}
@@ -371,14 +453,14 @@ This analysis examines how violations on automated camera-enforced routes within
 
 **Top 5 Routes by Total Violations:**
 """
-    
+
     # Add top routes table
     top_routes = results['route_analysis'].head(5)
     report += "\n| Route | Total | Pre-CP | Post-CP | Change % |\n|-------|-------|--------|---------|----------|\n"
-    
+
     for _, row in top_routes.iterrows():
         report += f"| {row['route']} | {row['total_violations']:,} | {row['pre_cp_violations']:,} | {row['post_cp_violations']:,} | {row['change_percent']:+.1f}% |\n"
-    
+
     # Add methodology section
     report += f"""
 
@@ -393,15 +475,17 @@ This analysis examines how violations on automated camera-enforced routes within
 ### Interpretation
 
 """
-    
+
     # Add interpretation based on results
-    if results['percent_change'] < -5:
+    if not results.get('has_pre_period'):
+        report += "We lack pre-CP observations; we cannot infer change. The figures show post-CP levels only."
+    elif results['percent_change'] < -5:
         report += "The data shows a significant **decrease** in violations following congestion pricing implementation, suggesting successful traffic reduction in the Central Business District."
     elif results['percent_change'] > 5:
         report += "The data shows an **increase** in violations following congestion pricing implementation, which may indicate enforcement improvements or other factors."
     else:
         report += "The data shows relatively **stable** violation patterns following congestion pricing implementation."
-    
+
     report += f"""
 
 ### Conclusions
@@ -409,7 +493,7 @@ This analysis examines how violations on automated camera-enforced routes within
 1. **Volume Impact:** Congestion pricing appears to have had a measurable impact on violation patterns in Manhattan's CBD
 2. **Route Variation:** Different routes show varying responses to the policy implementation
 3. **Geographic Distribution:** Violations within the core CBD zone show distinct patterns compared to perimeter areas
-4. **Policy Effectiveness:** The {results['percent_change']:+.1f}% change in violations provides evidence of congestion pricing's impact on traffic behavior
+4. **Policy Effectiveness:** {('The ' + f"{results['percent_change']:+.1f}% change in violations provides evidence of congestion pricing's impact on traffic behavior") if results.get('has_pre_period') else 'Net change not computable with current dataset (no pre-CP data)'}
 
 ### Recommendations for Further Analysis
 
@@ -422,56 +506,62 @@ This analysis examines how violations on automated camera-enforced routes within
 *Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 *Question 3 Analysis - MTA Datathon 2025*
 """
-    
+
     # Save report
     with open('results/question3_summary_report.md', 'w') as f:
         f.write(report)
-    
+
     print("Summary report saved to: results/question3_summary_report.md")
+
 
 def main():
     """
     Main analysis function for Question 3
     """
-    
+
     print("="*80)
     print("QUESTION 3: CONGESTION PRICING IMPACT ON CBD ROUTE VIOLATIONS")
     print("MTA Datathon 2025")
     print("="*80)
-    
+
     # Step 1: Load data
     df = load_ace_violations_data()
     if df.empty:
         print("Cannot proceed without data. Please check data file location.")
         return
-    
+
     # Step 2: Filter for Manhattan CBD routes
     cbd_df, route_list = identify_manhattan_cbd_routes(df)
     if cbd_df.empty:
         print("No Manhattan CBD routes found in data.")
         return
-    
+
     # Step 3: Analyze congestion pricing impact
     results = analyze_congestion_pricing_impact(cbd_df)
     if not results:
         print("Could not complete analysis due to data issues.")
         return
-    
+
     # Step 4: Create visualizations
     create_visualizations(cbd_df, results)
-    
+
     # Step 5: Generate report
     generate_summary_report(results)
-    
+
     print("\n" + "="*80)
     print("ANALYSIS COMPLETE!")
     print("="*80)
     print(f"✅ Analyzed {results['total_violations']:,} violations")
-    print(f"✅ Found {results['percent_change']:+.1f}% change post-congestion pricing")
+    if results.get('has_pre_period'):
+        print(
+            f"✅ Found {results['percent_change']:+.1f}% change post-congestion pricing")
+    else:
+        print("✅ Net change not computable (no pre-CP data in dataset)")
     print(f"✅ Generated visualizations and summary report")
     print(f"✅ Results saved in results/ folder")
-    
+
     return results
+
 
 if __name__ == "__main__":
     # Run the complete analysis
