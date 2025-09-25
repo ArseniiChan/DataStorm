@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime, timedelta
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 # Set styling
@@ -12,19 +13,42 @@ sns.set_palette("husl")
 
 
 def load_ace_violations_data():
-    """Load ACE violations from 2025 file and historical 2019–2024 file, normalize, and combine"""
-    import os
+    """Load ACE violations from data/ or data/raw (multiple filenames supported), normalize, and combine.
 
+    Supports files like:
+    - ace_violations_05_2024_to_08_2024.csv
+    - ace_violations_05_2025_to_08_2025.csv
+    - MTA_Bus_Automated_Camera_Enforcement_Violations__Beginning_October_2019_*.csv
+    - ace_violations_raw_*.csv
+    """
     print("Loading ACE violations data...")
 
-    paths = [
-        '../data/raw/ace_violations_raw_20250923_2345.csv',
-        '../data/raw/MTA_Bus_Automated_Camera_Enforcement_Violations__Beginning_October_2019_20250924.csv',
-    ]
-    dfs = []
+    # Resolve base dirs relative to this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_base = os.path.abspath(os.path.join(script_dir, '..', 'data'))
+    legacy_raw = os.path.join(data_base, 'raw')
 
-    def normalize(df):
-        # Harmonize column names
+    search_dirs = [d for d in [data_base, legacy_raw] if os.path.isdir(d)]
+    if not search_dirs:
+        print(f"  - Missing data dirs: {data_base} (and legacy {legacy_raw})")
+        return pd.DataFrame()
+
+    # Gather candidate CSVs
+    candidates = []
+    for d in search_dirs:
+        for fn in os.listdir(d):
+            if not fn.lower().endswith('.csv'):
+                continue
+            name = fn.lower()
+            if ('ace' in name and 'violation' in name) or ('automated_camera_enforcement' in name):
+                candidates.append(os.path.join(d, fn))
+
+    if not candidates:
+        print("Error: No ACE files found in data/ or data/raw.")
+        return pd.DataFrame()
+
+    def normalize(df: pd.DataFrame) -> pd.DataFrame:
+        # Harmonize columns from possible title/snake cases
         rename_map = {
             'Violation ID': 'violation_id',
             'Vehicle ID': 'vehicle_id',
@@ -43,49 +67,41 @@ def load_ace_violations_data():
             'Bus Stop Georeference': 'bus_stop_georeference',
         }
         df = df.rename(columns={c: rename_map.get(c, c) for c in df.columns})
-
-        # Parse dates (handles both 2025 ISO and 2019–2024 MM/DD/YYYY AM/PM)
         for col in ['first_occurrence', 'last_occurrence']:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
-
-        # Ensure numeric coords
-        for col in [c for c in df.columns if 'lat' in c.lower() or 'lon' in c.lower() or 'latitude' in c.lower() or 'longitude' in c.lower()]:
+        for col in [c for c in df.columns if any(k in c.lower() for k in ['lat', 'lon'])]:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-
-        # Standardize route column to string
         if 'bus_route_id' in df.columns:
             df['bus_route_id'] = df['bus_route_id'].astype(str)
-
         return df
 
-    for p in paths:
+    frames = []
+    for path in sorted(candidates):
         try:
-            if os.path.exists(p):
-                print(f"  - Reading: {p}")
-                df = pd.read_csv(p)
-                df = normalize(df)
-                dfs.append(df)
-            else:
-                print(f"  - Missing: {p}")
+            print(f"  - Reading: {os.path.basename(path)}")
+            df = pd.read_csv(path)
+            df = normalize(df)
+            frames.append(df)
         except Exception as e:
-            print(f"  - Error reading {p}: {e}")
+            print(f"  - Error reading {path}: {e}")
 
-    if not dfs:
-        print("Error: No ACE files loaded.")
+    if not frames:
+        print("Error: Failed to load ACE CSVs")
         return pd.DataFrame()
 
-    df_all = pd.concat(dfs, ignore_index=True)
+    all_df = pd.concat(frames, ignore_index=True)
+    if 'violation_id' in all_df.columns:
+        before = len(all_df)
+        all_df = all_df.drop_duplicates(subset=['violation_id'])
+        print(f"  De-duplicated: {before:,} -> {len(all_df):,}")
 
-    # Drop exact dupes if present
-    if 'violation_id' in df_all.columns:
-        before = len(df_all)
-        df_all = df_all.drop_duplicates(subset=['violation_id'])
-        print(f"De-duplicated by violation_id: {before:,} -> {len(df_all):,}")
+    print(f"Loaded {len(all_df):,} violation records")
+    if 'first_occurrence' in all_df.columns:
+        print(
+            f"Date range: {all_df['first_occurrence'].min()} -> {all_df['first_occurrence'].max()}")
 
-    print(f"Loaded combined ACE dataset: {len(df_all):,} rows")
-    print(f"Date range: {df_all['first_occurrence'].min()} -> {df_all['first_occurrence'].max()}")
-    return df_all
+    return all_df
 
 
 def identify_manhattan_cbd_routes(df):
@@ -357,7 +373,7 @@ def create_visualizations(cbd_df, results):
                         ha='center', va='center', transform=axes[1, 1].transAxes)
 
     plt.tight_layout()
-    plt.savefig('results/question3_congestion_pricing_analysis.png',
+    plt.savefig('results/q3_congestion_pricing_analysis.png',
                 dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -419,99 +435,38 @@ def create_route_comparison_chart(results):
 
 
 def generate_summary_report(results):
-    """Generate comprehensive summary report"""
+    """Generate a concise summary report aligned with Q1/Q2 style"""
 
     print("\nGenerating summary report...")
 
     # Build Net change line conditionally
     if results.get('has_pre_period'):
-        net_change_line = f"**Net change: {results['percent_change']:+.1f}%**"
+        net_change_line = f"Net change: {results['percent_change']:+.1f}%"
+        notes_line = "Notes: Results reflect CBD routes; see figures for route details."
     else:
-        net_change_line = "**Net change: Not computable (no pre-CP data)**"
+        net_change_line = "Net change: Not computable (no pre-CP data)"
+        notes_line = "Notes: No pre-CP observations; figures show post-CP levels only."
 
-    report = f"""
-# Question 3: Congestion Pricing Impact Analysis
-## MTA Datathon 2025
+    report = (
+        f"# Question 3: Congestion Pricing Impact\n\n"
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        f"Overall\n\n"
+        f"- Total violations: {results['total_violations']:,}\n"
+        f"- Pre-CP: {results['pre_cp_violations']:,}\n"
+        f"- Post-CP: {results['post_cp_violations']:,}\n"
+        f"- {net_change_line}\n\n"
+        f"Window\n\n"
+        f"- Data spans: {results['analysis_date_range'][0].strftime('%Y-%m-%d')} to {results['analysis_date_range'][1].strftime('%Y-%m-%d')}\n"
+        f"- CP start: {results['congestion_start_date'].strftime('%Y-%m-%d')}\n\n"
+        f"{notes_line}\n\n"
+        f"See figures: `q3_congestion_pricing_analysis.png`, `route_comparison_chart.png`.\n"
+    )
 
-### Executive Summary
-
-This analysis examines how violations on automated camera-enforced routes within or crossing Manhattan's Central Business District changed following the implementation of congestion pricing on January 5, 2025.
-
-### Key Findings
-
-**Overall Impact:**
-- Total violations analyzed: {results['total_violations']:,}
-- Pre-congestion pricing violations: {results['pre_cp_violations']:,}
-- Post-congestion pricing violations: {results['post_cp_violations']:,}
-- {net_change_line}
-
-**Analysis Period:**
-- Data spans: {results['analysis_date_range'][0].strftime('%Y-%m-%d')} to {results['analysis_date_range'][1].strftime('%Y-%m-%d')}
-- Congestion pricing implementation: {results['congestion_start_date'].strftime('%Y-%m-%d')}
-
-### Route-Specific Analysis
-
-**Top 5 Routes by Total Violations:**
-"""
-
-    # Add top routes table
-    top_routes = results['route_analysis'].head(5)
-    report += "\n| Route | Total | Pre-CP | Post-CP | Change % |\n|-------|-------|--------|---------|----------|\n"
-
-    for _, row in top_routes.iterrows():
-        report += f"| {row['route']} | {row['total_violations']:,} | {row['pre_cp_violations']:,} | {row['post_cp_violations']:,} | {row['change_percent']:+.1f}% |\n"
-
-    # Add methodology section
-    report += f"""
-
-### Methodology
-
-**Data Source:** MTA Bus Automated Camera Enforcement (ACE) Violations
-**Geographic Focus:** Manhattan routes crossing or traveling within Central Business District (south of 61st Street)
-**Analysis Method:** Before/after comparison using January 5, 2025 as the implementation cutoff date
-
-**Routes Analyzed:** {len(results['route_analysis'])} Manhattan bus routes including crosstown services (M14, M23, M34, M42, M57) and north-south routes that enter the CBD (M15, M2, M4, M101, etc.)
-
-### Interpretation
-
-"""
-
-    # Add interpretation based on results
-    if not results.get('has_pre_period'):
-        report += "We lack pre-CP observations; we cannot infer change. The figures show post-CP levels only."
-    elif results['percent_change'] < -5:
-        report += "The data shows a significant **decrease** in violations following congestion pricing implementation, suggesting successful traffic reduction in the Central Business District."
-    elif results['percent_change'] > 5:
-        report += "The data shows an **increase** in violations following congestion pricing implementation, which may indicate enforcement improvements or other factors."
-    else:
-        report += "The data shows relatively **stable** violation patterns following congestion pricing implementation."
-
-    report += f"""
-
-### Conclusions
-
-1. **Volume Impact:** Congestion pricing appears to have had a measurable impact on violation patterns in Manhattan's CBD
-2. **Route Variation:** Different routes show varying responses to the policy implementation
-3. **Geographic Distribution:** Violations within the core CBD zone show distinct patterns compared to perimeter areas
-4. **Policy Effectiveness:** {('The ' + f"{results['percent_change']:+.1f}% change in violations provides evidence of congestion pricing's impact on traffic behavior") if results.get('has_pre_period') else 'Net change not computable with current dataset (no pre-CP data)'}
-
-### Recommendations for Further Analysis
-
-- Weekly and daily pattern analysis to identify more granular trends
-- Comparison with overall traffic volume data from MTA
-- Analysis of violation types (bus lane vs bus stop vs double parking)
-- Correlation with weather and seasonal factors
-
----
-*Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
-*Question 3 Analysis - MTA Datathon 2025*
-"""
-
-    # Save report
-    with open('results/question3_summary_report.md', 'w') as f:
+    # Save report (standardized filename)
+    with open('results/q3_summary_report.md', 'w') as f:
         f.write(report)
 
-    print("Summary report saved to: results/question3_summary_report.md")
+    print("Summary report saved to: results/q3_summary_report.md")
 
 
 def main():

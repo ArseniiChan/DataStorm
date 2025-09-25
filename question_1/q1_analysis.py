@@ -17,8 +17,9 @@ def get_project_paths() -> Dict[str, Path]:
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
     data_dir = project_root / "data"
-    raw_dir = data_dir / "raw"
-    processed_dir = data_dir / "processed"
+    # Support both flat data/ and legacy data/raw structure
+    raw_dir = data_dir if (data_dir.exists()) else (data_dir / "raw")
+    processed_dir = data_dir  # unused; kept for compatibility
     results_dir = script_dir / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
     return {

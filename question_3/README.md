@@ -1,4 +1,5 @@
 # Question 3: Congestion Pricing Impact Analysis
+
 ## MTA Datathon 2025
 
 ### Executive Summary
@@ -8,12 +9,14 @@ This analysis examines how violations on automated camera-enforced routes within
 ### Key Findings
 
 **Overall Impact:**
+
 - Total violations analyzed: 79,982
 - Pre-congestion pricing violations: 42,486
 - Post-congestion pricing violations: 37,496
 - **Net change: -11.7%**
 
 **Analysis Period:**
+
 - Data spans: 2024-05-24 to 2025-08-21
 - Congestion pricing implementation: 2025-01-05
 
@@ -21,14 +24,13 @@ This analysis examines how violations on automated camera-enforced routes within
 
 **Top 5 Routes by Total Violations:**
 
-| Route | Total | Pre-CP | Post-CP | Change % |
-|-------|-------|--------|---------|----------|
-| M15+ | 39,535 | 31,612 | 7,923 | -74.9% |
-| M101 | 14,477 | 0 | 14,477 | +0.0% |
-| M14+ | 6,378 | 5,369 | 1,009 | -81.2% |
-| M34+ | 4,133 | 3,420 | 713 | -79.2% |
-| M2 | 3,929 | 0 | 3,929 | +0.0% |
-
+| Route | Total  | Pre-CP | Post-CP | Change % |
+| ----- | ------ | ------ | ------- | -------- |
+| M15+  | 39,535 | 31,612 | 7,923   | -74.9%   |
+| M101  | 14,477 | 0      | 14,477  | +0.0%    |
+| M14+  | 6,378  | 5,369  | 1,009   | -81.2%   |
+| M34+  | 4,133  | 3,420  | 713     | -79.2%   |
+| M2    | 3,929  | 0      | 3,929   | +0.0%    |
 
 ### Methodology
 
@@ -56,6 +58,31 @@ The data shows a significant **decrease** in violations following congestion pri
 - Analysis of violation types (bus lane vs bus stop vs double parking)
 - Correlation with weather and seasonal factors
 
+### Inputs
+
+- Place ACE violations CSVs in `data/raw/` (filenames flexible), e.g.:
+  - `ace_violations_05_2024_to_08_2024.csv`
+  - `ace_violations_05_2025_to_08_2025.csv`
+  - or a combined historical export (2019–2024)
+
+### How to Run
+
+```bash
+python question_3/q3_analysis.py
+```
+
+### Outputs
+
+- `question_3/results/q3_congestion_pricing_analysis.png`
+- `question_3/results/route_comparison_chart.png`
+- `question_3/results/q3_summary_report.md`
+
+### Edge Cases
+
+- If no pre-2025 data is present, the report will say "Net change: Not computable (no pre-CP data)" and charts adapt (single-series comparisons).
+- Loader automatically scans `data/raw/` and normalizes columns; no specific filename required.
+
 ---
-*Generated on 2025-09-24 20:43:31*
-*Question 3 Analysis - MTA Datathon 2025*
+
+_Generated on 2025-09-24 20:43:31_
+_Question 3 Analysis - MTA Datathon 2025_
