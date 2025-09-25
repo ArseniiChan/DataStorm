@@ -28,7 +28,7 @@
         header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 2rem 0;
+            padding: 3rem 2rem;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -41,106 +41,143 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="white" stop-opacity="0.1"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>');
-            opacity: 0.1;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
         }
         
         header h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin-bottom: 0.5rem;
             position: relative;
             z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         header p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             position: relative;
             z-index: 1;
+            margin-bottom: 1rem;
         }
         
-        .badge {
+        .team-badge {
             display: inline-block;
-            background: #ff6b35;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
             color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
             margin-top: 1rem;
             font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.4);
         }
         
         .hero-stats {
             display: flex;
             justify-content: center;
-            gap: 2rem;
+            gap: 3rem;
             margin-top: 2rem;
             flex-wrap: wrap;
         }
         
         .stat {
             text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
         
         .stat-number {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
             color: #ff6b35;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             opacity: 0.9;
+            margin-top: 0.5rem;
         }
         
         .content {
             padding: 3rem 2rem;
         }
         
-        .summary {
+        .executive-summary {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 2rem;
-            border-radius: 15px;
+            padding: 2.5rem;
+            border-radius: 20px;
             margin-bottom: 3rem;
-            border-left: 5px solid #2a5298;
+            border-left: 6px solid #2a5298;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        .summary h2 {
+        .executive-summary h2 {
             color: #1e3c72;
-            margin-bottom: 1rem;
-            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
+        }
+        
+        .executive-summary p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, rgba(255,107,53,0.2) 0%, rgba(255,107,53,0.1) 100%);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
         }
         
         .key-findings {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 2rem;
             margin: 3rem 0;
         }
         
         .finding-card {
             background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border-top: 4px solid #2a5298;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-top: 5px solid #2a5298;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .finding-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #2a5298 0%, #ff6b35 100%);
         }
         
         .finding-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
         }
         
         .finding-card h3 {
             color: #1e3c72;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .metric {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: bold;
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         
         .metric.positive {
@@ -156,20 +193,46 @@
         }
         
         .impact {
-            background: #e8f5e8;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
             border-left: 4px solid #28a745;
         }
         
         .video-section {
-            background: #1e3c72;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 3rem 2rem;
+            padding: 4rem 2rem;
             text-align: center;
-            border-radius: 15px;
-            margin: 3rem 0;
+            border-radius: 20px;
+            margin: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .video-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+        
+        .video-section h2 {
+            position: relative;
+            z-index: 1;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .video-section p {
+            position: relative;
+            z-index: 1;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
         }
         
         .video-container {
@@ -179,94 +242,122 @@
             padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
-            border-radius: 10px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
         
-        .video-placeholder {
+        .video-container iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: white;
-        }
-        
-        .play-button {
-            width: 80px;
-            height: 80px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .play-button:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.1);
         }
         
         .recommendations {
-            background: #f8f9fa;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-top: 3rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 3rem;
+            border-radius: 20px;
+            margin-top: 4rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
         .recommendations h2 {
             color: #1e3c72;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             text-align: center;
+            font-size: 2.2rem;
         }
         
         .rec-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
         }
         
         .rec-item {
             background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            border-left: 4px solid #ff6b35;
+            padding: 2rem;
+            border-radius: 15px;
+            border-left: 5px solid #ff6b35;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .rec-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
         
         .rec-item h4 {
             color: #1e3c72;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
         
         .technical-info {
-            margin-top: 3rem;
-            padding: 2rem;
+            margin-top: 4rem;
+            padding: 3rem;
             background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf6 100%);
-            border-radius: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .technical-info h2 {
+            color: #1e3c72;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 2.2rem;
         }
         
         .tech-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .tech-item {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
         .tech-item h4 {
             color: #1e3c72;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .tech-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .tech-item li {
+            padding: 0.3rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .tech-item li::before {
+            content: '•';
+            color: #ff6b35;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
         }
         
         .links {
-            margin-top: 3rem;
+            margin-top: 4rem;
             text-align: center;
+        }
+        
+        .links h2 {
+            color: #1e3c72;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
         }
         
         .link-grid {
@@ -274,53 +365,80 @@
             justify-content: center;
             gap: 2rem;
             flex-wrap: wrap;
-            margin-top: 1rem;
+            margin-top: 2rem;
         }
         
         .link-button {
             display: inline-block;
-            background: #2a5298;
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
             color: white;
-            padding: 1rem 2rem;
+            padding: 1.2rem 2.5rem;
             text-decoration: none;
-            border-radius: 8px;
-            transition: background 0.3s ease;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 20px rgba(42,82,152,0.3);
         }
         
         .link-button:hover {
-            background: #1e3c72;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(42,82,152,0.4);
         }
         
         footer {
-            background: #1e3c72;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 2rem;
+        }
+        
+        footer p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-members {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
         
         @media (max-width: 768px) {
             header h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
             
             .hero-stats {
-                gap: 1rem;
+                gap: 1.5rem;
             }
             
             .content {
                 padding: 2rem 1rem;
             }
             
-            .finding-card {
-                padding: 1.5rem;
+            .finding-card, .executive-summary {
+                padding: 2rem;
             }
             
             .link-grid {
                 flex-direction: column;
                 align-items: center;
             }
+            
+            .metric {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -329,145 +447,177 @@
         <header>
             <h1>DataStorm</h1>
             <p>MTA Datathon 2025 - Bus Automated Camera Enforcement Analysis</p>
-            <div class="badge">Advanced Analytics Team</div>
+            <div class="team-badge">🏆 Advanced Analytics Team</div>
             
             <div class="hero-stats">
                 <div class="stat">
-                    <div class="stat-number">79K+</div>
+                    <div class="stat-number">368K+</div>
                     <div class="stat-label">Violations Analyzed</div>
                 </div>
                 <div class="stat">
                     <div class="stat-number">-11.7%</div>
-                    <div class="stat-label">Congestion Reduction</div>
+                    <div class="stat-label">CBD Congestion Reduction</div>
                 </div>
                 <div class="stat">
                     <div class="stat-number">3</div>
-                    <div class="stat-label">Key Insights</div>
+                    <div class="stat-label">Strategic Insights</div>
                 </div>
             </div>
         </header>
 
         <div class="content">
-            <div class="summary">
+            <div class="executive-summary fade-in">
                 <h2>🎯 Executive Summary</h2>
-                <p>Our comprehensive analysis of MTA's Bus Automated Camera Enforcement (ACE) program reveals significant insights across three critical areas: CUNY student route performance, violation patterns, and <strong>congestion pricing effectiveness</strong>. Most notably, our data shows an <strong>11.7% decrease</strong> in violations following the implementation of congestion pricing in Manhattan's Central Business District, demonstrating measurable policy success.</p>
+                <p>Our comprehensive analysis of MTA's Bus Automated Camera Enforcement (ACE) program reveals critical insights across three strategic areas: CUNY student route performance, violation exemption patterns, and <span class="highlight">congestion pricing effectiveness</span>. Most significantly, our data demonstrates an <span class="highlight">11.7% decrease in violations</span> following Manhattan's congestion pricing implementation on January 5, 2025, providing concrete evidence of policy success and measurable traffic behavior change in the Central Business District.</p>
             </div>
 
             <div class="key-findings">
-                <div class="finding-card">
-                    <h3>📊 Question 1: CUNY Routes Speed</h3>
+                <div class="finding-card fade-in">
+                    <h3>📊 Question 1: CUNY Routes Speed Analysis</h3>
                     <div class="metric positive">+0.18 mph</div>
-                    <p><strong>Average speed increase</strong> on camera-enforced routes serving CUNY campuses</p>
+                    <p><strong>Average speed improvement</strong> across camera-enforced routes serving CUNY campuses, indicating enhanced transit efficiency for students</p>
                     <div class="impact">
-                        <strong>Impact:</strong> Improved transit efficiency for students across campus-serving routes
+                        <strong>Business Impact:</strong> Improved transit reliability supports student mobility and campus accessibility across NYC's CUNY system
                     </div>
                 </div>
 
-                <div class="finding-card">
-                    <h3>🚗 Question 2: Vehicle Exemptions</h3>
+                <div class="finding-card fade-in">
+                    <h3>🚗 Question 2: Vehicle Exemptions & Violators</h3>
                     <div class="metric neutral">18.7%</div>
-                    <p><strong>Exemption rate</strong> out of 288,725 total violations analyzed</p>
+                    <p><strong>Exemption rate</strong> identified across 288,725 total violations, with clear repeat violator patterns emerging</p>
                     <div class="impact">
-                        <strong>Impact:</strong> Policy review opportunity identified; repeat violator patterns mapped
+                        <strong>Business Impact:</strong> Significant policy optimization opportunity - 18.7% exemption rate suggests need for systematic review and enforcement refinement
                     </div>
                 </div>
 
-                <div class="finding-card">
-                    <h3>🏙️ Question 3: Congestion Pricing</h3>
+                <div class="finding-card fade-in">
+                    <h3>🏙️ Question 3: Congestion Pricing Success</h3>
                     <div class="metric positive">-11.7%</div>
-                    <p><strong>Violation decrease</strong> in Manhattan CBD after Jan 5, 2025 implementation</p>
+                    <p><strong>Violation decrease</strong> in Manhattan CBD following congestion pricing implementation - clear evidence of policy effectiveness</p>
                     <div class="impact">
-                        <strong>Impact:</strong> <strong>Strong evidence of policy success</strong> - measurable traffic behavior change
+                        <strong>Business Impact:</strong> <strong>Measurable policy success</strong> demonstrates congestion pricing's effectiveness in reducing traffic violations and improving urban mobility
                     </div>
                 </div>
             </div>
 
             <div class="video-section">
                 <h2>🎥 Project Walkthrough</h2>
-                <p>Watch our 2-minute analysis explanation covering methodology, key findings, and business recommendations</p>
+                <p>Watch our comprehensive 2-minute analysis covering methodology, key findings, and strategic business recommendations</p>
                 <div class="video-container">
-                    <div class="video-placeholder">
-                        <div class="play-button">
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                        </div>
-                        <p>Click to watch presentation video</p>
-                        <p style="font-size: 0.9rem; opacity: 0.8;">Upload your video and replace this placeholder</p>
-                    </div>
+                    <iframe src="https://www.youtube.com/embed/45NB7nAIKMs" frameborder="0" allowfullscreen></iframe>
                 </div>
             </div>
 
-            <div class="recommendations">
-                <h2>💼 Business Recommendations</h2>
+            <div class="recommendations fade-in">
+                <h2>💼 Strategic Business Recommendations</h2>
                 <div class="rec-grid">
                     <div class="rec-item">
-                        <h4>🎉 Celebrate Success</h4>
-                        <p>Congestion pricing shows measurable 11.7% violation reduction - publicize this policy win</p>
+                        <h4>🎉 Publicize Policy Success</h4>
+                        <p>Leverage the measurable 11.7% reduction in CBD violations as evidence of congestion pricing effectiveness for public and stakeholder communications</p>
                     </div>
                     <div class="rec-item">
-                        <h4>📋 Review Exemptions</h4>
-                        <p>18.7% exemption rate suggests need for policy audit and refinement</p>
+                        <h4>📋 Optimize Exemption Policy</h4>
+                        <p>Review the 18.7% exemption rate through systematic policy audit to improve enforcement efficiency and revenue optimization</p>
                     </div>
                     <div class="rec-item">
-                        <h4>🎯 Target Enforcement</h4>
-                        <p>Focus resources on identified repeat violators for maximum impact</p>
+                        <h4>🎯 Focus Enforcement Resources</h4>
+                        <p>Target identified repeat violators and chronic offenders for maximum enforcement impact and compliance improvement</p>
                     </div>
                     <div class="rec-item">
-                        <h4>📈 Expand Program</h4>
-                        <p>Success metrics support broader ACE implementation across additional routes</p>
+                        <h4>📈 Expand Successful Programs</h4>
+                        <p>Use demonstrated success metrics to support broader ACE implementation across additional high-impact routes citywide</p>
                     </div>
                 </div>
             </div>
 
-            <div class="technical-info">
-                <h2>🛠️ Technical Implementation</h2>
+            <div class="technical-info fade-in">
+                <h2>🛠️ Technical Implementation & Methodology</h2>
                 <div class="tech-grid">
                     <div class="tech-item">
-                        <h4>Data Sources</h4>
-                        <p>• MTA ACE Violations (775K+ records)<br>
-                        • Bus Route Segment Speeds<br>
-                        • CUNY Campus Locations<br>
-                        • NYC Geographic Boundaries</p>
+                        <h4>📊 Data Sources</h4>
+                        <ul>
+                            <li>MTA ACE Violations (368K+ records)</li>
+                            <li>Bus Route Segment Speeds (2024-2025)</li>
+                            <li>CUNY Campus Geographic Data</li>
+                            <li>NYC Manhattan CBD Boundaries</li>
+                            <li>Real-time Socrata API Integration</li>
+                        </ul>
                     </div>
                     <div class="tech-item">
-                        <h4>Analysis Methods</h4>
-                        <p>• Pre/post statistical comparison<br>
-                        • Geographic route identification<br>
-                        • Time series trend analysis<br>
-                        • Violation pattern clustering</p>
+                        <h4>🔬 Analysis Methods</h4>
+                        <ul>
+                            <li>Pre/post statistical comparison analysis</li>
+                            <li>Geographic route classification</li>
+                            <li>Time series trend identification</li>
+                            <li>Violation pattern clustering & segmentation</li>
+                            <li>Repeat violator identification algorithms</li>
+                        </ul>
                     </div>
                     <div class="tech-item">
-                        <h4>Tools & Technologies</h4>
-                        <p>• Python (pandas, matplotlib, seaborn)<br>
-                        • Socrata API integration<br>
-                        • Statistical analysis<br>
-                        • Multi-panel visualizations</p>
+                        <h4>💻 Technologies</h4>
+                        <ul>
+                            <li>Python (pandas, matplotlib, seaborn)</li>
+                            <li>NYC Open Data Socrata API</li>
+                            <li>Statistical analysis & visualization</li>
+                            <li>Multi-panel dashboard creation</li>
+                            <li>Automated report generation</li>
+                        </ul>
+                    </div>
+                    <div class="tech-item">
+                        <h4>📈 Key Findings</h4>
+                        <ul>
+                            <li>Congestion pricing: -11.7% CBD violations</li>
+                            <li>CUNY routes: +0.18 mph speed improvement</li>
+                            <li>Exemptions: 18.7% rate across all violations</li>
+                            <li>Repeat violators: Clear patterns identified</li>
+                            <li>Route-specific performance variations</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="links">
-                <h2>📁 Explore Our Analysis</h2>
+            <div class="links fade-in">
+                <h2>📁 Explore Our Complete Analysis</h2>
                 <div class="link-grid">
-                    <a href="question_1/" class="link-button">📊 Q1: CUNY Routes</a>
-                    <a href="question_2/" class="link-button">🚗 Q2: Exemptions</a>
-                    <a href="question_3/" class="link-button">🏙️ Q3: Congestion Pricing</a>
-                    <a href="https://github.com/yourusername/DataStorm" class="link-button">💻 View Code</a>
+                    <a href="https://github.com/yourusername/DataStorm" class="link-button">💻 View Source Code</a>
+                    <a href="question_1/results/q1_summary_report.md" class="link-button">📊 Q1: CUNY Routes</a>
+                    <a href="question_2/results/q2_summary_report.md" class="link-button">🚗 Q2: Exemptions</a>
+                    <a href="question_3/results/q3_summary_report.md" class="link-button">🏙️ Q3: Congestion Pricing</a>
                 </div>
             </div>
         </div>
 
         <footer>
             <p><strong>Team DataStorm</strong> - MTA Datathon 2025</p>
-            <p>Advanced Analytics • Data-Driven Policy Insights • Business Intelligence</p>
+            <p>Advanced Analytics • Data-Driven Policy Insights • Strategic Business Intelligence</p>
+            <div class="team-members">
+                <strong>Team Members:</strong> Arsenii, Diana, Bekbol, Lin
+            </div>
         </footer>
     </div>
 
     <script>
-        // Add smooth scrolling and interactive elements
         document.addEventListener('DOMContentLoaded', function() {
-            // Smooth scroll for internal links
+            // Intersection Observer for fade-in animation
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            // Apply fade-in animation to elements
+            document.querySelectorAll('.fade-in').forEach(element => {
+                observer.observe(element);
+            });
+
+            // Smooth scrolling for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -481,32 +631,13 @@
                 });
             });
 
-            // Add animation to cards when they come into view
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Apply animation to cards
-            document.querySelectorAll('.finding-card, .rec-item').forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(card);
-            });
-
-            // Video placeholder click handler
-            document.querySelector('.video-placeholder').addEventListener('click', function() {
-                alert('Add your YouTube video embed code here!\n\nReplace this placeholder with:\n<iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>');
+            // Add subtle parallax effect to header
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
             });
         });
     </script>
