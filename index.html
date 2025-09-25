@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataStorm - MTA Datathon 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50%" cy="40%" r="50%"><stop offset="0%" stop-color="white" stop-opacity="0.1"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="100" height="20" fill="url(%23a)"/></svg>');
+            opacity: 0.1;
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #ff6b35;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 3rem 2rem;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            border-left: 5px solid #2a5298;
+        }
+        
+        .summary h2 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .key-findings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .finding-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-top: 4px solid #2a5298;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .finding-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .finding-card h3 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .metric {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        
+        .metric.positive {
+            color: #28a745;
+        }
+        
+        .metric.negative {
+            color: #dc3545;
+        }
+        
+        .metric.neutral {
+            color: #ffc107;
+        }
+        
+        .impact {
+            background: #e8f5e8;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border-left: 4px solid #28a745;
+        }
+        
+        .video-section {
+            background: #1e3c72;
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-radius: 15px;
+            margin: 3rem 0;
+        }
+        
+        .video-container {
+            max-width: 800px;
+            margin: 2rem auto 0;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .play-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .recommendations {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 3rem;
+        }
+        
+        .recommendations h2 {
+            color: #1e3c72;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .rec-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .rec-item h4 {
+            color: #1e3c72;
+            margin-bottom: 0.5rem;
+        }
+        
+        .technical-info {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf6 100%);
+            border-radius: 15px;
+        }
+        
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .tech-item h4 {
+            color: #1e3c72;
+            margin-bottom: 0.5rem;
+        }
+        
+        .links {
+            margin-top: 3rem;
+            text-align: center;
+        }
+        
+        .link-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .link-button {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .link-button:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            background: #1e3c72;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-stats {
+                gap: 1rem;
+            }
+            
+            .content {
+                padding: 2rem 1rem;
+            }
+            
+            .finding-card {
+                padding: 1.5rem;
+            }
+            
+            .link-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DataStorm</h1>
+            <p>MTA Datathon 2025 - Bus Automated Camera Enforcement Analysis</p>
+            <div class="badge">Advanced Analytics Team</div>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number">79K+</div>
+                    <div class="stat-label">Violations Analyzed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">-11.7%</div>
+                    <div class="stat-label">Congestion Reduction</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Key Insights</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="summary">
+                <h2>🎯 Executive Summary</h2>
+                <p>Our comprehensive analysis of MTA's Bus Automated Camera Enforcement (ACE) program reveals significant insights across three critical areas: CUNY student route performance, violation patterns, and <strong>congestion pricing effectiveness</strong>. Most notably, our data shows an <strong>11.7% decrease</strong> in violations following the implementation of congestion pricing in Manhattan's Central Business District, demonstrating measurable policy success.</p>
+            </div>
+
+            <div class="key-findings">
+                <div class="finding-card">
+                    <h3>📊 Question 1: CUNY Routes Speed</h3>
+                    <div class="metric positive">+0.18 mph</div>
+                    <p><strong>Average speed increase</strong> on camera-enforced routes serving CUNY campuses</p>
+                    <div class="impact">
+                        <strong>Impact:</strong> Improved transit efficiency for students across campus-serving routes
+                    </div>
+                </div>
+
+                <div class="finding-card">
+                    <h3>🚗 Question 2: Vehicle Exemptions</h3>
+                    <div class="metric neutral">18.7%</div>
+                    <p><strong>Exemption rate</strong> out of 288,725 total violations analyzed</p>
+                    <div class="impact">
+                        <strong>Impact:</strong> Policy review opportunity identified; repeat violator patterns mapped
+                    </div>
+                </div>
+
+                <div class="finding-card">
+                    <h3>🏙️ Question 3: Congestion Pricing</h3>
+                    <div class="metric positive">-11.7%</div>
+                    <p><strong>Violation decrease</strong> in Manhattan CBD after Jan 5, 2025 implementation</p>
+                    <div class="impact">
+                        <strong>Impact:</strong> <strong>Strong evidence of policy success</strong> - measurable traffic behavior change
+                    </div>
+                </div>
+            </div>
+
+            <div class="video-section">
+                <h2>🎥 Project Walkthrough</h2>
+                <p>Watch our 2-minute analysis explanation covering methodology, key findings, and business recommendations</p>
+                <div class="video-container">
+                    <div class="video-placeholder">
+                        <div class="play-button">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                        <p>Click to watch presentation video</p>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">Upload your video and replace this placeholder</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h2>💼 Business Recommendations</h2>
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <h4>🎉 Celebrate Success</h4>
+                        <p>Congestion pricing shows measurable 11.7% violation reduction - publicize this policy win</p>
+                    </div>
+                    <div class="rec-item">
+                        <h4>📋 Review Exemptions</h4>
+                        <p>18.7% exemption rate suggests need for policy audit and refinement</p>
+                    </div>
+                    <div class="rec-item">
+                        <h4>🎯 Target Enforcement</h4>
+                        <p>Focus resources on identified repeat violators for maximum impact</p>
+                    </div>
+                    <div class="rec-item">
+                        <h4>📈 Expand Program</h4>
+                        <p>Success metrics support broader ACE implementation across additional routes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="technical-info">
+                <h2>🛠️ Technical Implementation</h2>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <h4>Data Sources</h4>
+                        <p>• MTA ACE Violations (775K+ records)<br>
+                        • Bus Route Segment Speeds<br>
+                        • CUNY Campus Locations<br>
+                        • NYC Geographic Boundaries</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Analysis Methods</h4>
+                        <p>• Pre/post statistical comparison<br>
+                        • Geographic route identification<br>
+                        • Time series trend analysis<br>
+                        • Violation pattern clustering</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Tools & Technologies</h4>
+                        <p>• Python (pandas, matplotlib, seaborn)<br>
+                        • Socrata API integration<br>
+                        • Statistical analysis<br>
+                        • Multi-panel visualizations</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="links">
+                <h2>📁 Explore Our Analysis</h2>
+                <div class="link-grid">
+                    <a href="question_1/" class="link-button">📊 Q1: CUNY Routes</a>
+                    <a href="question_2/" class="link-button">🚗 Q2: Exemptions</a>
+                    <a href="question_3/" class="link-button">🏙️ Q3: Congestion Pricing</a>
+                    <a href="https://github.com/yourusername/DataStorm" class="link-button">💻 View Code</a>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Team DataStorm</strong> - MTA Datathon 2025</p>
+            <p>Advanced Analytics • Data-Driven Policy Insights • Business Intelligence</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add smooth scrolling and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll for internal links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add animation to cards when they come into view
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Apply animation to cards
+            document.querySelectorAll('.finding-card, .rec-item').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Video placeholder click handler
+            document.querySelector('.video-placeholder').addEventListener('click', function() {
+                alert('Add your YouTube video embed code here!\n\nReplace this placeholder with:\n<iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>');
+            });
+        });
+    </script>
+</body>
+</html>
